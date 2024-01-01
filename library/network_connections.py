@@ -989,6 +989,37 @@ class NMUtil:
                 s_wireless_sec.set_property(
                     NM.SETTING_WIRELESS_SECURITY_PSK, connection["wireless"]["password"]
                 )
+        elif connection["type"] == "wireguard":
+            s_con.set_property(
+                NM.SETTING_CONNECTION_TYPE, NM.SETTING_WIREGUARD_SETTING_NAME
+            )
+            s_wireguard = self.connection_ensure_setting(con, NM.SettingWireGuard)
+            s_wireguard.set_property(
+                NM.SETTING_WIREGUARD_PRIVATE_KEY,
+                connection["wireguard"]["private_key"],
+            )
+            # TODO: deal with auto
+            # s_ip4.set_property(NM.SETTING_IP_CONFIG_METHOD, "auto")
+            if connection["wireguard"]["listen_port"] is not None:
+                s_wireguard.set_property(
+                    NM.SETTING_WIREGUARD_LISTEN_PORT,
+                    connection["wireguard"]["listen_port"],
+                )
+            if "peers" in connection["wireguard"]:
+                for idx, peer in enumerate(connection["wireguard"]["peers"]):
+                    #nm_routing_rule = NM.IPRoutingRule.new(routing_rule["family"])
+                    new_peer = NM.WireGuardPeer.new()
+                    new_peer.set_public_key(peer["public_key"], True)
+                    try:
+                        new_peer.is_valid(True, True)
+                    except Exception:
+                        raise MyError('public key "%s" is invalid' % (peer['public_key']))
+                    if "allowed_ips" in peer:
+                        for aip in peer["allowed_ips"]:
+                            if not new_peer.append_allowed_ip('%s/%s' % (aip['address'], aip['prefix']), False):
+                                raise MyError('invalid allowed-ip "%s"' % (aip))
+                    s_wireguard.append_peer(new_peer)
+
         else:
             raise MyError("unsupported type %s" % (connection["type"]))
 

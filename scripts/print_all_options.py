@@ -37,6 +37,7 @@ PRIORITIES = (
     "wireless",
     "macvlan",
     "infiniband",
+    "wireguard",
 )
 
 

@@ -14,6 +14,7 @@ This role can be used to configure:
 - MacVLAN interfaces
 - Infiniband interfaces
 - Wireless (WiFi) interfaces
+- Wireguard interfaces
 - IP configuration
 - 802.1x authentication
 
@@ -32,8 +33,7 @@ NetworkManager's API version since which the settings are introduced.
 
 The `network` role supports two modules: `network_connections` and `network_state`.
 
-For each host a list of networking profiles can be configured via the
-`network_connections` variable.
+For each host a list of networking profiles can be configured via the `network_connections` variable.
 
 - For `initscripts`, profiles correspond to ifcfg files in the
   `/etc/sysconfig/network-scripts/` directory and those ifcfg files
@@ -259,6 +259,7 @@ The `type` option can be set to the following values:
 - `macvlan`
 - `infiniband`
 - `wireless`
+- `wireguard`
 - `dummy`
 
 #### `type: ethernet`
@@ -354,6 +355,24 @@ The following options are supported:
   - `wpa-psk`
 
 - `password`: password for the network (required if `wpa-psk` or `sae` is used)
+
+#### `type: wireguard`
+
+`nm` (NetworkManager) is the only supported `network_provider` for this type.
+
+**TODO** Verify if it might be possilbe to support ifcfg.
+
+Method "auto" is not supported for neither ipv4 nor ipv6. You must set IP
+address manually or disable the protocol.
+
+The following options are supported:
+
+- `private_key`: Private key (required)
+- `listen_port`
+- `peers`: with keys:
+
+  - `public_key` (required)
+  - `allowed_ips`
 
 #### `type: dummy`
 

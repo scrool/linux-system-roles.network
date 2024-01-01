@@ -1759,6 +1759,39 @@ class ArgValidator_DictWireless(ArgValidatorDict):
         return result
 
 
+class ArgValidatorWireGuardPeer(ArgValidatorDict):
+    def __init__(self, name):
+        ArgValidatorDict.__init__(
+            self,
+            name,
+            nested=[
+                ArgValidatorStr("public_key", required=True),
+                ArgValidatorList(
+                    "allowed_ips",
+                    nested=ArgValidatorIPAddr("address[?]"),
+                    default_value=list,
+                ),
+            ],
+        )
+
+class ArgValidator_DictWireGuard(ArgValidatorDict):
+    def __init__(self):
+        ArgValidatorDict.__init__(
+            self,
+            name="wireguard",
+            nested=[
+                ArgValidatorStr("private_key", required=True, min_length=44, max_length=44),
+                ArgValidatorNum("listen_port", val_min=1, val_max=65534),
+                ArgValidatorList(
+                    "peers",
+                    nested=ArgValidatorWireGuardPeer("peer[?]"),
+                    default_value=list,
+                ),
+            ],
+            default_value=ArgValidator.MISSING,
+        )
+
+
 class ArgValidatorListMatchPath(ArgValidatorList):
     def __init__(self, name, nested, default_value, remove_none_or_empty):
         ArgValidatorList.__init__(
@@ -1813,6 +1846,7 @@ class ArgValidator_DictConnection(ArgValidatorDict):
         "wireless",
         # wokeignore:rule=dummy
         "dummy",
+        "wireguard",
     ]
     VALID_PORT_TYPES = ["bridge", "bond", "team"]
 
@@ -1882,6 +1916,7 @@ class ArgValidator_DictConnection(ArgValidatorDict):
                 ArgValidator_DictMacvlan(),
                 ArgValidator_Dict802_1X(),
                 ArgValidator_DictWireless(),
+                ArgValidator_DictWireGuard(),
                 ArgValidator_DictMatch(),
                 # deprecated options:
                 ArgValidatorStr(
